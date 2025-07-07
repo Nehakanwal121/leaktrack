@@ -1,0 +1,6 @@
+invoice_id,product_id,quantity,price,discount,billing_amount,expected_amount,mismatch_flag
+INV001,PROD001,10,50,20,480,480,false
+INV002,PROD002,5,100,0,500,500,false
+INV003,PROD003,3,200,30,570,570,false
+INV004,PROD004,2,150,0,280,300,true
+INV005,PROD005,4,300,100,1000,1100,true

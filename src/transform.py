@@ -1,20 +1,17 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, expr
 
-# Initialize Spark session
-spark = SparkSession.builder.appName("LeakTrack-Transform").getOrCreate()
+def transform():
+    spark = SparkSession.builder.appName("LeakTrack-Transform").getOrCreate()
 
-# Load data from CSV again
-df = spark.read.csv("data/invoices.csv", header=True, inferSchema=True)
+    # Load data
+    df = spark.read.csv("data/invoices.csv", header=True, inferSchema=True)
 
-# Add expected billing column: (quantity * price) - discount
-df_transformed = df.withColumn("expected_amount", (col("quantity") * col("price")) - col("discount"))
+    # Transform
+    df_transformed = df.withColumn("expected_amount", (col("quantity") * col("price")) - col("discount"))
+    df_result = df_transformed.withColumn("mismatch_flag", expr("expected_amount != billing_amount"))
 
-# Flag mismatches
-df_result = df_transformed.withColumn("mismatch_flag", expr("expected_amount != billing_amount"))
+    # Save output
+    df_result.write.mode("overwrite").option("header", True).csv("output/mismatches")
 
-# Show mismatches only
-df_result.filter("mismatch_flag = true").show()
-
-# Save to CSV (for dashboard use)
-df_result.write.mode("overwrite").option("header", True).csv("output/mismatches")
+    return df_result.toPandas()  # send to Streamlit as Pandas DataFrame
